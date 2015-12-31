@@ -22,3 +22,6 @@ Options:
 Example Output:
 ===============
 ![headevuln-screenshot](https://welbornprod.com/static/media/img/headervuln-google.png)
+
+
+Inspired by: [gethead](https://github.com/httphacker/gethead)
