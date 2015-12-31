@@ -17,7 +17,7 @@ from docopt import docopt
 colr_auto_disable()
 
 NAME = 'Header Vulnerability Checker'
-VERSION = '0.0.1'
+VERSION = '0.0.2'
 VERSIONSTR = '{} v. {}'.format(NAME, VERSION)
 SCRIPT = os.path.split(os.path.abspath(sys.argv[0]))[1]
 SCRIPTDIR = os.path.abspath(sys.path[0])
@@ -61,11 +61,7 @@ HEADERS = {
         'accepted': ANY,
         'verbose': 'HTTP over TLS/SSL',
     },
-    'x-content-security-policy': {
-        'accepted': ANY,
-        'verbose': 'Content Security Policy',
-    },
-    'x-webkit-csp': {
+    'content-security-policy': {
         'accepted': ANY,
         'verbose': 'Content Security Policy',
     },
