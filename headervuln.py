@@ -17,7 +17,7 @@ from docopt import docopt
 colr_auto_disable()
 
 NAME = 'Header Vulnerability Checker'
-VERSION = '0.0.2'
+VERSION = '0.0.3'
 VERSIONSTR = '{} v. {}'.format(NAME, VERSION)
 SCRIPT = os.path.split(os.path.abspath(sys.argv[0]))[1]
 SCRIPTDIR = os.path.abspath(sys.path[0])
@@ -25,12 +25,13 @@ SCRIPTDIR = os.path.abspath(sys.path[0])
 USAGESTR = """{versionstr}
     Usage:
         {script} -h | -v
-        {script} URL
+        {script} URL [-s]
 
     Options:
         URL           : URL to check. Protocol must be specified, otherwise
                         http:// is used.
         -h,--help     : Show this help message.
+        -s,--show     : Just show the response headers.
         -v,--version  : Show version.
 """.format(script=SCRIPT, versionstr=VERSIONSTR)
 
@@ -93,23 +94,10 @@ def main(argd):
         print_err('Unable to get headers: {}\n{}'.format(argd['URL'], ex))
         return 1
 
-    errs = 0
-    for headername in HEADERS:
-        success = check_header(headername, headers)
-        if not success:
-            errs += 1
-        print(
-            format_header_check(
-                headername,
-                enforced=success,
-                value=headers.get(headername, None)
-            ))
-    if errs:
-        plural = 'vulnerability' if errs == 1 else 'vulnerabilities'
-        print_err('\nFound {} {}.'.format(errs, plural))
-    else:
-        print(C('\nAll clear.', 'green'))
-    return errs
+    if argd['--show']:
+        return print_headers(headers)
+
+    return print_vulnerabilities(headers)
 
 
 def check_header(name, headers):
@@ -179,6 +167,43 @@ def print_err(*args, **kwargs):
     if kwargs.get('file', None) is None:
         kwargs['file'] = sys.stderr
     print(C(' '.join(str(s) for s in args), 'red'), **kwargs)
+
+
+def print_headers(headers):
+    """ Prints headers in a key: value style. """
+    headerlen = len(headers)
+    print(C('{} {} returned:').format(
+        C(headerlen, 'blue'),
+        'header' if headerlen == 1 else 'headers'
+    ))
+    maxlength = len(max(headers, key=len)) + 4
+    for k, v in headers.items():
+        print(C(': ').join(
+            C(str(k).rjust(maxlength), 'blue'),
+            C(v, 'cyan')
+        ))
+    return 0
+
+
+def print_vulnerabilities(headers):
+    """ Check all headers and print their possible vulnerability status. """
+    errs = 0
+    for headername in HEADERS:
+        success = check_header(headername, headers)
+        if not success:
+            errs += 1
+        print(
+            format_header_check(
+                headername,
+                enforced=success,
+                value=headers.get(headername, None)
+            ))
+    if errs:
+        plural = 'vulnerability' if errs == 1 else 'vulnerabilities'
+        print_err('\nFound {} possible {}.'.format(errs, plural))
+    else:
+        print(C('\nAll clear.', 'green'))
+    return errs
 
 
 if __name__ == '__main__':
